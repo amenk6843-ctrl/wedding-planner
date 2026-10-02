@@ -75,7 +75,8 @@ const ICONS = {
   phone: '<path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/>',
   star: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>',
   film: '<rect x="2" y="2" width="20" height="20" rx="2.18"/><path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5"/>',
-  more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'
+  more: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+  smartphone: '<rect x="5" y="2" width="14" height="20" rx="2.5"/><path d="M12 18h.01"/>'
 };
 function icon(n, s = 18) {
   return `<svg class="ic" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
@@ -84,6 +85,7 @@ function icon(n, s = 18) {
 /* ---------------- sections registry ---------------- */
 const SECTIONS = [
   { id: 'dashboard', label: 'Dashboard', icon: 'home' },
+  { id: 'gameplan', label: 'Game Plan', icon: 'smartphone' },
   { id: 'details', label: 'Wedding Details', icon: 'heart' },
   { id: 'checklist', label: 'Checklist', icon: 'checklist' },
   { id: 'tasks', label: 'Tasks', icon: 'tasks' },
@@ -130,12 +132,12 @@ function sampleData() {
   const V = (type, name, company, price, deposit, paid, dueIn, contract, extra = {}) => Object.assign(
     { id: uid(), type, name, company, phone: '', email: '', website: '', price, deposit, paid, due: dueIn == null ? '' : isoPlus(dueIn), contract, notes: '' }, extra);
   const vendors = [
-    V('Venue', 'Sarah Mitchell', 'Rosewood Gardens', 8000, 2000, 2000, 60, 'Signed', { phone: '(555) 123-4567' }),
-    V('Photographer', 'David Chen', 'Everlasting Moments', 3500, 1000, 1000, 30, 'Signed'),
-    V('Caterer', 'Maria Garcia', 'Golden Fork Catering', 9000, 2500, 1000, 45, 'Signed'),
-    V('Florist', 'Emily White', 'Petal & Stem', 2200, 500, 500, 50, 'Draft'),
-    V('DJ', 'Alex Rivera', 'BeatDrop Entertainment', 1500, 400, 0, 40, 'Sent'),
-    V('Cake', 'Sophie Laurent', 'Sweet Layers', 800, 200, 200, 55, 'Signed')
+    V('Venue', 'Sarah Mitchell', 'Rosewood Gardens', 8000, 2000, 2000, 60, 'Signed', { phone: '(555) 123-4567', arrivalTime: '08:00' }),
+    V('Photographer', 'David Chen', 'Everlasting Moments', 3500, 1000, 1000, 30, 'Signed', { phone: '(555) 234-5678', arrivalTime: '11:00' }),
+    V('Caterer', 'Maria Garcia', 'Golden Fork Catering', 9000, 2500, 1000, 45, 'Signed', { phone: '(555) 345-6789', arrivalTime: '13:00' }),
+    V('Florist', 'Emily White', 'Petal & Stem', 2200, 500, 500, 50, 'Draft', { arrivalTime: '10:00' }),
+    V('DJ', 'Alex Rivera', 'BeatDrop Entertainment', 1500, 400, 0, 40, 'Sent', { phone: '(555) 456-7890', arrivalTime: '15:00' }),
+    V('Cake', 'Sophie Laurent', 'Sweet Layers', 800, 200, 200, 55, 'Signed', { arrivalTime: '12:00' })
   ];
   const budgetCats = [
     ['Venue', 8500, 8000], ['Catering', 9500, 9000], ['Photography', 3500, 3500],
@@ -163,7 +165,7 @@ function sampleData() {
       checklist.push({ id: uid(), section: sec, text, done: si === 0 && ti < 3, due: '', assignee: '' });
     });
   });
-  const TL = (time, name, location, duration, notes = '') => ({ id: uid(), time, name, location, duration, notes });
+  const TL = (time, name, location, duration, notes = '', who = 'Everyone') => ({ id: uid(), time, name, location, duration, notes, who });
   return {
     settings: {
       bride: 'Ava Sinclair', groom: 'Liam Carter', weddingDate: isoPlus(240),
@@ -195,8 +197,10 @@ function sampleData() {
       due: v.due, status: v.paid >= v.price ? 'Paid' : (v.paid > 0 ? 'Partial' : 'Unpaid')
     })),
     timeline: [
-      TL('09:00', 'Getting Ready', 'Bridal Suite', '90 min', 'Breakfast + mimosas'),
-      TL('09:30', 'Hair & Makeup', 'Bridal Suite', '120 min'),
+      TL('09:00', 'Getting Ready', 'Bridal Suite', '90 min', 'Breakfast + mimosas', 'Bride'),
+      TL('09:30', 'Hair & Makeup', 'Bridal Suite', '120 min', '', 'Hair & Makeup'),
+      TL('10:00', 'Groomsmen Prep', "Groom's Lounge", '60 min', 'Suits, boutonnieres, photos', 'Groomsmen'),
+      TL('11:00', 'Bridesmaids Prep', 'Bridal Suite', '60 min', 'Dresses + final touches', 'Bridesmaids'),
       TL('12:30', 'First Look', 'Garden Gazebo', '30 min', 'Private moment + photos'),
       TL('14:00', 'Ceremony', 'Rose Garden', '45 min'),
       TL('15:00', 'Photos', 'Grounds', '60 min', 'Family + wedding party'),
@@ -223,11 +227,11 @@ function sampleData() {
       { id: uid(), category: 'Cakes', label: 'Three-tier floral cake', url: '' }
     ],
     palette: [
-      { id: uid(), name: 'Dusty Rose', hex: '#B76E79' },
-      { id: uid(), name: 'Champagne', hex: '#D9C7A7' },
+      { id: uid(), name: 'Powder Blue', hex: '#7BA2B8' },
+      { id: uid(), name: 'Warm Sand', hex: '#D9CFBD' },
       { id: uid(), name: 'Sage', hex: '#9CAF88' },
-      { id: uid(), name: 'Warm Ivory', hex: '#FAF6F0' },
-      { id: uid(), name: 'Muted Gold', hex: '#B9975B' }
+      { id: uid(), name: 'Warm Ivory', hex: '#FAF8F2' },
+      { id: uid(), name: 'Muted Gold', hex: '#BFA15F' }
     ],
     honeymoon: {
       destination: 'Santorini, Greece', startDate: isoPlus(248), endDate: isoPlus(258),
@@ -238,6 +242,39 @@ function sampleData() {
     },
     emergency: ['Emergency sewing kit', 'Safety pins', 'Makeup touch-up kit', 'Tissues', 'Phone charger', 'Pain reliever', 'Snacks', 'Water bottles', 'Stain remover pen', 'Hair pins', 'Fashion tape']
       .map(t => ({ id: uid(), text: t, done: false })),
+    gameplan: {
+      welcome: "Welcome to our wedding weekend! This guide has everything you need — schedules, maps, key contacts and more. We can't wait to celebrate with you!",
+      weekend: 'Friday — Rehearsal at Rosewood Gardens, 4:00 PM, followed by the rehearsal dinner at 6:30 PM (wedding party + family).\n\nSaturday — THE BIG DAY!\nCeremony at 2:00 PM in the Rose Garden. Cocktail hour on the Terrace, then dinner and dancing in the Grand Hall until late.\n\nSunday — Farewell brunch at the hotel, 10:00 AM. Come say goodbye (and grab coffee)!',
+      familyPhotos: 'Right after the ceremony (about 2:45 PM) at the Garden Gazebo:\n\n1. Bride + Groom with both sets of parents\n2. Bride\'s extended family\n3. Groom\'s extended family\n4. Wedding party — full group\n5. College friends group\n\nPlease stay close after the ceremony so we can move quickly!',
+      thanks: 'Thank you for being part of the best day of our lives. Your love and support mean the world to us — now let\'s dance!',
+      coordinator: { name: 'Jenny Alvarez', role: 'Day-Of Coordinator', phone: '(555) 987-6543', photo: '', note: 'Jenny runs the show on the wedding day. Running late, lost, or need anything at all — she\'s your first call.' },
+      faq: [
+        { id: uid(), text: 'Running late? Text Jenny at (555) 987-6543 — she\'ll guide you in quietly.' },
+        { id: uid(), text: 'Parking is free in the main lot; shuttles run every 15 minutes from 1:00 PM.' },
+        { id: uid(), text: 'The ceremony is unplugged — please keep phones away until the reception!' }
+      ],
+      roles: [
+        { id: uid(), person: 'Maid of Honor — Sophia', duty: 'Keeps the bride\'s emergency kit and holds the bouquet during photos.' },
+        { id: uid(), person: 'Best Man — Liam', duty: 'Holds the rings and wrangles the groomsmen for group photos.' },
+        { id: uid(), person: 'Ava\'s Dad', duty: 'Walks Ava down the aisle.' }
+      ],
+      rules: [
+        { id: uid(), text: 'Unplugged ceremony — no phones during the vows, our photographer has it covered.' },
+        { id: uid(), text: 'Please be seated 15 minutes before the ceremony starts.' },
+        { id: uid(), text: 'Tag your photos #AvaAndLiam so we can find them!' },
+        { id: uid(), text: 'Have fun — the dance floor is open all night!' }
+      ],
+      stays: [
+        { id: uid(), name: 'The Napa Inn', checkin: '', checkout: '', notes: 'Room block under "Sinclair–Carter Wedding". Book by May 1 for the group rate.', mapsLink: '' },
+        { id: uid(), name: 'Garden View Suites', checkin: '', checkout: '', notes: 'Overflow rooms, 5 minutes from the venue.', mapsLink: '' }
+      ],
+      packing: [
+        { id: uid(), label: 'Touch-up makeup kit', done: false, for: 'Bride' },
+        { id: uid(), label: 'Cologne + spare shirt', done: false, for: 'Groom' },
+        { id: uid(), label: 'Comfortable dancing shoes', done: false, for: 'Party' },
+        { id: uid(), label: 'Phone charger', done: false, for: 'Everyone' }
+      ]
+    },
     notes: [
       { id: uid(), title: 'Venue walkthrough notes', body: 'Garden ceremony site fits 120. Backup indoor hall available. Load-in from 8am.', category: 'Venue', updatedAt: Date.now() },
       { id: uid(), title: 'Photographer shot list', body: 'Must-haves: first look, parents, golden hour couple portraits, sparkler exit.', category: 'Vendors', updatedAt: Date.now() },
@@ -400,6 +437,7 @@ let tickers = [];
 function clearTickers() { tickers.forEach(clearInterval); tickers = []; }
 function showSection(id) {
   clearTickers();
+  if (id !== 'gameplan' && gpShare) { gpShare = false; document.body.classList.remove('gp-share'); }
   currentSection = id;
   $$('#sidebar .nav-item').forEach(b => b.classList.toggle('active', b.dataset.sec === id));
   $$('#mobileNav .mn-item').forEach(b => b.classList.toggle('active', b.dataset.sec === id));
@@ -412,7 +450,7 @@ function showSection(id) {
 const MOBILE_TABS = ['dashboard', 'checklist', 'guests', 'budget', 'more'];
 function renderNav() {
   const groups = [
-    { label: 'Plan', ids: ['dashboard', 'details', 'checklist', 'tasks', 'timeline'] },
+    { label: 'Plan', ids: ['dashboard', 'gameplan', 'details', 'checklist', 'tasks', 'timeline'] },
     { label: 'People', ids: ['guests', 'seating', 'invitations', 'vendors'] },
     { label: 'Money', ids: ['budget', 'payments'] },
     { label: 'Style', ids: ['attire', 'flowers', 'moodboard', 'palette'] },
@@ -434,7 +472,7 @@ function renderNav() {
   ).join('');
   document.addEventListener('click', e => {
     const nav = e.target.closest('[data-sec]');
-    if (nav) { showSection(nav.dataset.sec); return; }
+    if (nav) { if (nav.dataset.sec === 'gameplan') gpPage = 'home'; showSection(nav.dataset.sec); return; }
     if (e.target.closest('[data-more]')) { $('#moreSheet').classList.add('open'); return; }
     if (e.target.closest('#moreSheet') && !e.target.closest('.sheet')) $('#moreSheet').classList.remove('open');
   });
@@ -472,7 +510,7 @@ function importData(file) {
     try {
       const d = JSON.parse(r.result);
       if (!d.settings) throw new Error('bad file');
-      state = d; save(); applyTheme(); showSection('dashboard');
+      state = d; ensureGameplan(); save(); applyTheme(); showSection('dashboard');
       toast('Data imported');
     } catch { toast('That file is not a valid backup', 'alert'); }
   };
@@ -1132,7 +1170,10 @@ function vendorFormHTML(v = {}) {
       <div class="field"><label>Amount paid ($)</label><input type="number" name="paid" min="0" step="1" value="${esc(v.paid ?? '')}"></div>
       <div class="field"><label>Payment deadline</label><input type="date" name="due" value="${esc(v.due || '')}"></div>
     </div>
-    <div class="field"><label>Contract status</label><select name="contract">${['Inquiry', 'Sent', 'Draft', 'Signed', 'Cancelled'].map(c => `<option ${v.contract === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+    <div class="form-row">
+      <div class="field"><label>Wedding-day arrival time</label><input type="time" name="arrivalTime" value="${esc(v.arrivalTime || '')}"><div class="hint">Shown in the Game Plan vendor schedule.</div></div>
+      <div class="field"><label>Contract status</label><select name="contract">${['Inquiry', 'Sent', 'Draft', 'Signed', 'Cancelled'].map(c => `<option ${v.contract === c ? 'selected' : ''}>${c}</option>`).join('')}</select></div>
+    </div>
     <div class="field"><label>Notes</label><textarea name="notes">${esc(v.notes || '')}</textarea></div>`;
 }
 RENDER.vendors = function () {
@@ -1177,7 +1218,7 @@ RENDER.vendors.after = function () {
   const num = v => v === '' ? 0 : Math.max(0, Number(v) || 0);
   const add = () => openModal('Add vendor', vendorFormHTML(), { onSubmit: d => {
     if (!d.company.trim()) return 'Please enter the company name.';
-    const v = { id: uid(), type: d.type, name: d.name.trim(), company: d.company.trim(), phone: d.phone.trim(), email: d.email.trim(), website: d.website.trim(), price: num(d.price), deposit: num(d.deposit), paid: num(d.paid), due: d.due, contract: d.contract, notes: d.notes.trim() };
+    const v = { id: uid(), type: d.type, name: d.name.trim(), company: d.company.trim(), phone: d.phone.trim(), email: d.email.trim(), website: d.website.trim(), price: num(d.price), deposit: num(d.deposit), paid: num(d.paid), due: d.due, contract: d.contract, arrivalTime: d.arrivalTime || '', notes: d.notes.trim() };
     state.vendors.push(v);
     state.payments.push({ id: uid(), vendor: v.company, total: v.price, deposit: v.deposit, paid: v.paid, due: v.due, status: v.paid >= v.price && v.price ? 'Paid' : (v.paid > 0 ? 'Partial' : 'Unpaid') });
     save(); showSection('vendors'); toast('Vendor added'); return null;
@@ -1186,7 +1227,7 @@ RENDER.vendors.after = function () {
     const v = state.vendors.find(x => x.id === b.dataset.edit);
     openModal('Edit vendor', vendorFormHTML(v), { onSubmit: d => {
       if (!d.company.trim()) return 'Please enter the company name.';
-      Object.assign(v, { type: d.type, name: d.name.trim(), company: d.company.trim(), phone: d.phone.trim(), email: d.email.trim(), website: d.website.trim(), price: num(d.price), deposit: num(d.deposit), paid: num(d.paid), due: d.due, contract: d.contract, notes: d.notes.trim() });
+      Object.assign(v, { type: d.type, name: d.name.trim(), company: d.company.trim(), phone: d.phone.trim(), email: d.email.trim(), website: d.website.trim(), price: num(d.price), deposit: num(d.deposit), paid: num(d.paid), due: d.due, contract: d.contract, arrivalTime: d.arrivalTime || '', notes: d.notes.trim() });
       save(); showSection('vendors'); toast('Vendor updated'); return null;
     }});
   });
@@ -1281,6 +1322,7 @@ RENDER.payments.after = function () {
 
 /* ---------------- Timeline + Emergency Kit ---------------- */
 let tlTab = 'day';
+const GP_WHO = ['Everyone', 'Bride', 'Groom', 'Bridesmaids', 'Groomsmen', 'Hair & Makeup'];
 function tlFormHTML(e = {}) {
   return `
     <div class="field"><label>Event name <span class="req">*</span></label><input type="text" name="name" value="${esc(e.name || '')}" required placeholder="e.g. First Dance"></div>
@@ -1288,7 +1330,10 @@ function tlFormHTML(e = {}) {
       <div class="field"><label>Time <span class="req">*</span></label><input type="time" name="time" value="${esc(e.time || '')}" required></div>
       <div class="field"><label>Duration</label><input type="text" name="duration" value="${esc(e.duration || '')}" placeholder="e.g. 30 min"></div>
     </div>
-    <div class="field"><label>Location</label><input type="text" name="location" value="${esc(e.location || '')}"></div>
+    <div class="form-row">
+      <div class="field"><label>Location</label><input type="text" name="location" value="${esc(e.location || '')}"></div>
+      <div class="field"><label>Who is this for?</label><select name="who">${GP_WHO.map(w => `<option ${(e.who || 'Everyone') === w ? 'selected' : ''}>${w}</option>`).join('')}</select><div class="hint">Used by the Game Plan party schedules.</div></div>
+    </div>
     <div class="field"><label>Notes</label><textarea name="notes">${esc(e.notes || '')}</textarea></div>`;
 }
 RENDER.timeline = function () {
@@ -1320,7 +1365,7 @@ RENDER.timeline = function () {
     ${evs.map(e => `<div class="tl-item">
       <div class="tl-time">${fmtTime(e.time)}</div>
       <h4>${esc(e.name)}</h4>
-      <div class="meta">${[e.location, e.duration].filter(Boolean).map(esc).join(' · ')}</div>
+      <div class="meta">${[e.who && e.who !== 'Everyone' ? e.who : null, e.location, e.duration].filter(Boolean).map(esc).join(' · ')}</div>
       ${e.notes ? `<p class="small muted mt-2">${esc(e.notes)}</p>` : ''}
       <div class="actions-row no-print mt-2">
         <button class="btn btn-sm" data-edit="${e.id}">${icon('edit', 13)} Edit</button>
@@ -1354,7 +1399,7 @@ RENDER.timeline.after = function () {
   const add = () => openModal('Add timeline event', tlFormHTML(), { onSubmit: d => {
     if (!d.name.trim()) return 'Please enter an event name.';
     if (!d.time) return 'Please choose a time.';
-    state.timeline.push({ id: uid(), name: d.name.trim(), time: d.time, location: d.location.trim(), duration: d.duration.trim(), notes: d.notes.trim() });
+    state.timeline.push({ id: uid(), name: d.name.trim(), time: d.time, who: d.who || 'Everyone', location: d.location.trim(), duration: d.duration.trim(), notes: d.notes.trim() });
     save(); showSection('timeline'); toast('Event added'); return null;
   }});
   $$('#view [data-edit]').forEach(b => b.onclick = () => {
@@ -1362,7 +1407,7 @@ RENDER.timeline.after = function () {
     openModal('Edit event', tlFormHTML(e), { onSubmit: d => {
       if (!d.name.trim()) return 'Please enter an event name.';
       if (!d.time) return 'Please choose a time.';
-      Object.assign(e, { name: d.name.trim(), time: d.time, location: d.location.trim(), duration: d.duration.trim(), notes: d.notes.trim() });
+      Object.assign(e, { name: d.name.trim(), time: d.time, who: d.who || 'Everyone', location: d.location.trim(), duration: d.duration.trim(), notes: d.notes.trim() });
       save(); showSection('timeline'); toast('Event updated'); return null;
     }});
   });
@@ -1523,7 +1568,7 @@ RENDER.palette = function () {
   ${sectionHead('Wedding Color Palette', 'Build your signature palette — click any swatch to copy its HEX.')}
   <div class="card mb-4">
     <div class="flex gap-2 no-print" style="flex-wrap:wrap;align-items:flex-end">
-      <div class="field" style="margin:0"><label>Pick a color</label><input type="color" id="palColor" value="#b76e79" style="width:64px;height:42px;padding:4px"></div>
+      <div class="field" style="margin:0"><label>Pick a color</label><input type="color" id="palColor" value="#7ba2b8" style="width:64px;height:42px;padding:4px"></div>
       <div class="field" style="margin:0;flex:1;min-width:160px"><label>Name it</label><input type="text" id="palName" placeholder="e.g. Dusty Rose"></div>
       <button class="btn btn-primary" id="palAdd">${icon('plus', 15)} Add color</button>
     </div>
@@ -1699,6 +1744,7 @@ function blankData() {
   d.honeymoon = { destination: '', startDate: '', endDate: '', flights: '', hotel: '', transport: '', activities: '', budget: '', bookingStatus: 'Not Started', packing: [] };
   d.emergency.forEach(e => e.done = false);
   d.palette = [];
+  d.gameplan = emptyGameplan();
   Object.values(d.attire).flat().forEach(i => i.status = 'Not Started');
   return d;
 }
@@ -1757,6 +1803,541 @@ RENDER.settings.after = function () {
     state = blankData(); save(); applyTheme(); showSection('dashboard');
   }, 'Clear everything');
 };
+
+/* ============================================================
+   Game Plan — wedding-day command center (app-like day-of guide)
+   ============================================================ */
+let gpPage = 'home';
+let gpShare = false;
+let gpPartyTab = 'Bride';
+let gpPackTab = 'All';
+
+function emptyGameplan() {
+  return {
+    welcome: '', weekend: '', familyPhotos: '', thanks: '',
+    coordinator: { name: '', role: '', phone: '', photo: '', note: '' },
+    faq: [], roles: [], rules: [], stays: [], packing: []
+  };
+}
+/* Adds the gameplan store for older saved data; returns true if anything migrated. */
+function ensureGameplan() {
+  let changed = false;
+  if (!state.gameplan) { state.gameplan = emptyGameplan(); changed = true; }
+  else {
+    const fresh = emptyGameplan();
+    Object.keys(fresh).forEach(k => {
+      if (state.gameplan[k] === undefined) { state.gameplan[k] = fresh[k]; changed = true; }
+    });
+  }
+  const g = state.gameplan;
+  if (!g.coordinator || typeof g.coordinator !== 'object') { g.coordinator = { name: '', role: '', phone: '', photo: '', note: '' }; changed = true; }
+  ['faq', 'roles', 'rules', 'stays', 'packing'].forEach(k => { if (!Array.isArray(g[k])) { g[k] = []; changed = true; } });
+  state.timeline.forEach(e => { if (!e.who) { e.who = 'Everyone'; changed = true; } });
+  return changed;
+}
+
+const gpMapsURL = q => 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
+const gpTel = p => 'tel:' + String(p || '').replace(/[^+\d]/g, '');
+function gpProse(t) {
+  if (!t || !String(t).trim()) return '';
+  return '<p>' + esc(t).split(/\n{2,}/).map(p => p.replace(/\n/g, '<br>')).join('</p><p>') + '</p>';
+}
+function gpTlList(evs, showWho) {
+  if (!evs.length) return '';
+  return `<div class="tl">${evs.map(e => `
+    <div class="tl-item">
+      <div class="tl-time">${fmtTime(e.time)}</div>
+      <h4>${esc(e.name)}</h4>
+      <div class="meta">${[showWho && e.who && e.who !== 'Everyone' ? e.who : null, e.location, e.duration].filter(Boolean).map(esc).join(' · ')}</div>
+      ${e.notes ? `<p class="small muted mt-2">${esc(e.notes)}</p>` : ''}
+    </div>`).join('')}</div>`;
+}
+const gpSortedTimeline = () => state.timeline.slice().sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+const gpEditBtn = (key, label) => !gpShare
+  ? `<button class="btn btn-primary btn-sm gp-edit-only no-print" data-gp-edit="${key}">${icon('edit', 13)} ${label}</button>` : '';
+
+const GP_TILES = [
+  { id: 'weekend', label: 'Weekend Overview', icon: 'calendar', tint: 'blue' },
+  { id: 'timelines', label: 'Wedding Day Timelines', icon: 'clock', tint: 'gold' },
+  { id: 'party', label: 'Wedding Party Schedules', icon: 'users', tint: 'green' },
+  { id: 'hairmakeup', label: 'Hair & Makeup', icon: 'star', tint: 'rose' },
+  { id: 'roles', label: 'Roles & Responsibilities', icon: 'checklist', tint: 'amber' },
+  { id: 'photos', label: 'Photo Schedule', icon: 'camera', tint: 'blue' },
+  { id: 'vendorsched', label: 'Vendor Schedule', icon: 'store', tint: 'green' },
+  { id: 'coordinator', label: 'Day of Coordinator', icon: 'phone', tint: 'rose' },
+  { id: 'venues', label: 'Venues & Locations', icon: 'pin', tint: 'gold' },
+  { id: 'stays', label: 'Accommodation', icon: 'home', tint: 'blue' },
+  { id: 'packing', label: 'What To Bring', icon: 'gift', tint: 'amber' },
+  { id: 'thanks', label: 'Thank You', icon: 'heart', tint: 'rose' },
+  { id: 'rules', label: 'Wedding Day Rules', icon: 'alert', tint: 'green' }
+];
+
+/* ---------- shell + home ---------- */
+function gpPageShell(title, sub, inner) {
+  return `
+  <div class="gp-shell">
+    <div class="gp-pagehead">
+      <button class="gp-backlink no-print" data-gp="home">← Game Plan</button>
+      <h2>${esc(title)}</h2>
+      ${sub ? `<p class="sub muted">${esc(sub)}</p>` : ''}
+    </div>
+    ${inner}
+    <button class="gp-fab no-print" data-gp="home" aria-label="Back to Game Plan home" title="Game Plan home">${icon('home', 20)}</button>
+  </div>`;
+}
+
+function gpHome() {
+  const s = state.settings, g = state.gameplan;
+  const d = daysUntil(s.weddingDate);
+  const dLabel = d == null ? '' : d < 0 ? 'Just married!' : d === 0 ? 'Today is the day!' : d + ' days to go';
+  return `
+  <div class="gp-shell">
+    <div class="gp-hero">
+      <div class="gp-hero-kicker">Ever After</div>
+      <h1>Wedding Day<br>Game Plan!</h1>
+      <div class="gp-couple">${esc(s.bride || 'Bride')} &amp; ${esc(s.groom || 'Groom')}</div>
+      <div class="gp-date-row">
+        ${s.weddingDate ? `<span class="gp-pill">${icon('calendar', 13)} ${esc(fmtDate(s.weddingDate))}</span>` : ''}
+        ${dLabel ? `<span class="gp-pill gp-pill-hi">${icon('clock', 13)} ${esc(dLabel)}</span>` : ''}
+      </div>
+    </div>
+    ${!gpShare ? `
+    <div class="gp-sharebar no-print">
+      <div><strong>Guest view</strong><div class="small muted">Hide all editing — a clean guide for your wedding party.</div></div>
+      <button class="btn btn-sm btn-accent" data-gp-share>Turn on</button>
+    </div>` : `
+    <div class="gp-sharebar on no-print">
+      <div>${icon('check', 15)} <strong>Guest view is on</strong><div class="small muted">Send this file to your wedding party.</div></div>
+      <button class="btn btn-sm" data-gp-share>Exit</button>
+    </div>`}
+    ${(g.welcome || !gpShare) ? `
+    <div class="card gp-welcome-card">
+      <div class="flex justify-between items-center"><h3 style="margin:0">${icon('send', 16)} Welcome</h3>${gpEditBtn('welcome', 'Edit')}</div>
+      ${g.welcome ? `<div class="gp-prose mt-2">${gpProse(g.welcome)}</div>` : `<p class="muted small" style="margin:8px 0 0">No welcome message yet — add one for your party.</p>`}
+    </div>` : ''}
+    <div class="gp-grid">
+      ${GP_TILES.map((t, i) => `
+        <button class="gp-tile" data-gp="${t.id}" style="animation-delay:${Math.min(i * 45, 540)}ms">
+          <span class="gp-tile-ic tint-${t.tint}">${icon(t.icon, 24)}</span>
+          <span class="gp-tile-label">${t.label}</span>
+        </button>`).join('')}
+    </div>
+    <p class="gp-foot muted small">Made with ${icon('heart', 12)} for the big day</p>
+  </div>`;
+}
+
+/* ---------- pages ---------- */
+function gpWeekend() {
+  const w = state.gameplan.weekend;
+  return gpPageShell('Weekend Overview', 'The full weekend, at a glance.', `
+    <div class="actions-row mb-4 no-print">${gpEditBtn('weekend', 'Edit overview')}</div>
+    <div class="card">${w ? `<div class="gp-prose">${gpProse(w)}</div>`
+      : emptyState('calendar', 'No weekend overview yet', 'Write the plan for the whole weekend — rehearsal, the big day, brunch.')}</div>`);
+}
+
+function gpTimelines() {
+  const evs = gpSortedTimeline();
+  return gpPageShell('Wedding Day Timelines', 'Every moment, beautifully ordered.', `
+    ${!gpShare ? `<div class="actions-row mb-4 no-print"><button class="btn gp-edit-only" data-gp-go="timeline">${icon('edit', 15)} Manage in Timeline</button></div>` : ''}
+    ${evs.length ? `<div class="card">${gpTlList(evs, true)}</div>`
+      : emptyState('clock', 'No timeline yet', 'Add events in the Timeline section and they will appear here.')}`);
+}
+
+function gpPartyEvents(who) {
+  return gpSortedTimeline().filter(e => { const w = e.who || 'Everyone'; return w === 'Everyone' || w === who; });
+}
+function gpParty() {
+  const evs = gpPartyTab === 'Everyone' ? gpSortedTimeline().filter(e => (e.who || 'Everyone') === 'Everyone') : gpPartyEvents(gpPartyTab);
+  return gpPageShell('Wedding Party Schedules', 'A personal timeline for everyone in the party.', `
+    <div class="tabs no-print">${GP_WHO.map(w => `<button class="tab ${gpPartyTab === w ? 'active' : ''}" data-gp-ptab="${w}">${w}</button>`).join('')}</div>
+    <div class="card">
+      <h3>${icon('users', 18)} ${esc(gpPartyTab)}</h3>
+      ${evs.length ? gpTlList(evs, false) : `<p class="muted small" style="margin:0">No events tagged for ${esc(gpPartyTab)} yet — tag them in the Timeline section.</p>`}
+    </div>
+    ${!gpShare ? `<div class="actions-row mt-4 no-print"><button class="btn gp-edit-only" data-gp-go="timeline">${icon('edit', 15)} Manage in Timeline</button></div>` : ''}`);
+}
+
+function gpHairMakeup() {
+  const evs = gpPartyEvents('Hair & Makeup');
+  return gpPageShell('Hair & Makeup', 'Glam squad schedule.', `
+    <div class="card gp-tip"><span>${icon('star', 18)}</span><div class="small">Hair and makeup runs on a tight clock — please arrive <strong>on time</strong> and with clean, dry hair.</div></div>
+    <div class="card mt-4">
+      <h3>${icon('star', 18)} Schedule</h3>
+      ${evs.length ? gpTlList(evs, false) : `<p class="muted small" style="margin:0">No hair &amp; makeup events yet — tag them in the Timeline section.</p>`}
+    </div>
+    ${!gpShare ? `<div class="actions-row mt-4 no-print"><button class="btn gp-edit-only" data-gp-go="timeline">${icon('edit', 15)} Manage in Timeline</button></div>` : ''}`);
+}
+
+function gpRoles() {
+  const rs = state.gameplan.roles;
+  return gpPageShell('Roles & Responsibilities', 'Who does what on the day.', `
+    ${!gpShare ? `<div class="actions-row mb-4 no-print"><button class="btn btn-primary gp-edit-only" data-gp-addrole>${icon('plus', 15)} Add responsibility</button></div>` : ''}
+    ${rs.length ? `<div class="card">${rs.map(r => `
+      <div class="check-item">
+        <div class="txt"><div><strong>${esc(r.person)}</strong></div><div class="meta">${esc(r.duty)}</div></div>
+        ${!gpShare ? `<div class="row-actions no-print">
+          <button class="icon-btn" style="width:32px;height:32px" data-gp-editrole="${r.id}" title="Edit">${icon('edit', 13)}</button>
+          <button class="icon-btn" style="width:32px;height:32px" data-gp-delrole="${r.id}" title="Delete">${icon('trash', 13)}</button>
+        </div>` : ''}
+      </div>`).join('')}</div>`
+      : emptyState('checklist', 'No roles assigned yet', 'Give everyone a job for the day — wranglers, keepers, helpers.')}`);
+}
+
+const PHOTO_RE = /photo|picture|portrait|camera|\bshot\b/i;
+function gpPhotos() {
+  const evs = gpSortedTimeline().filter(e => PHOTO_RE.test(e.name + ' ' + (e.notes || '')));
+  const fp = state.gameplan.familyPhotos;
+  return gpPageShell('Photo Schedule', 'Never miss a must-have shot.', `
+    <div class="card">
+      <h3>${icon('camera', 18)} Photo moments</h3>
+      ${evs.length ? gpTlList(evs, true) : `<p class="muted small" style="margin:0">No photo events on the timeline yet.</p>`}
+    </div>
+    <div class="card mt-4">
+      <div class="flex justify-between items-center"><h3 style="margin:0">${icon('users', 18)} Family photo plan</h3>${gpEditBtn('familyPhotos', 'Edit')}</div>
+      ${fp ? `<div class="gp-prose mt-2">${gpProse(fp)}</div>` : `<p class="muted small" style="margin:8px 0 0">List the family groupings in shooting order so photos fly by.</p>`}
+    </div>`);
+}
+
+function gpVendorSched() {
+  const vs = state.vendors.slice().sort((a, b) =>
+    ((a.arrivalTime || '99') + (a.company || '')).localeCompare((b.arrivalTime || '99') + (b.company || '')));
+  return gpPageShell('Vendor Schedule', 'Arrival times & tap-to-call.', `
+    ${vs.length ? vs.map(v => `
+      <div class="card gp-vendor mb-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <span class="badge rose">${esc(v.type)}</span>
+            <h3 style="margin:8px 0 2px">${esc(v.company)}</h3>
+            ${v.name ? `<p class="muted small" style="margin:0">${esc(v.name)}</p>` : ''}
+          </div>
+          <div class="gp-arr">${v.arrivalTime ? fmtTime(v.arrivalTime) : '<span class="muted small">—</span>'}</div>
+        </div>
+        <div class="actions-row mt-2">
+          ${v.phone ? `<a class="btn btn-primary btn-sm" href="${gpTel(v.phone)}">${icon('phone', 14)} Call</a>` : ''}
+          ${!gpShare ? `<button class="btn btn-sm gp-edit-only no-print" data-gp-arr="${v.id}">${icon('clock', 13)} Set arrival</button>` : ''}
+        </div>
+      </div>`).join('')
+      : emptyState('store', 'No vendors yet', 'Add vendors in the Vendors section with their arrival times.')}`);
+}
+
+function gpCoordinator() {
+  const c = state.gameplan.coordinator;
+  const faqs = state.gameplan.faq;
+  const has = !!(c.name || c.phone);
+  return gpPageShell('Day of Coordinator', 'Your go-to person on the day.', `
+    <div class="actions-row mb-4 no-print">${!gpShare ? `<button class="btn btn-primary gp-edit-only" data-gp-edit="coordinator">${icon('edit', 15)} ${has ? 'Edit' : 'Add'} coordinator</button>` : ''}</div>
+    ${has ? `
+    <div class="card gp-coord">
+      ${c.photo ? `<img src="${esc(c.photo)}" class="gp-coord-photo" alt="${esc(c.name)}" onerror="this.style.display='none'">` : `<div class="gp-coord-photo ph">${icon('users', 30)}</div>`}
+      <h3 style="margin:12px 0 2px">${esc(c.name)}</h3>
+      <p class="muted small" style="margin:0 0 10px">${esc(c.role || 'Day-Of Coordinator')}</p>
+      ${c.note ? `<p class="small" style="max-width:38ch;margin:0 auto 12px">${esc(c.note)}</p>` : ''}
+      ${c.phone ? `<a class="btn btn-primary gp-call" href="${gpTel(c.phone)}">${icon('phone', 18)} Call ${esc(c.name.split(' ')[0])}</a>
+      <div class="small muted mt-2">${esc(c.phone)}</div>` : ''}
+    </div>` : emptyState('phone', 'No coordinator yet', 'Add your day-of go-to person — the one everyone calls.')}
+    <div class="card mt-4">
+      <h3>${icon('alert', 18)} Good to know</h3>
+      ${faqs.length ? faqs.map(f => `
+        <div class="check-item"><div class="txt">${esc(f.text)}</div>
+          ${!gpShare ? `<div class="row-actions no-print"><button class="icon-btn" style="width:30px;height:30px" data-gp-delfaq="${f.id}" title="Delete">${icon('trash', 13)}</button></div>` : ''}
+        </div>`).join('') : `<p class="muted small" style="margin:0">No notes yet.</p>`}
+      ${!gpShare ? `<div class="flex gap-2 mt-2 no-print">
+        <input type="text" id="gpFaqNew" placeholder="Add a helpful note…" style="flex:1">
+        <button class="btn btn-sm btn-primary" data-gp-addfaq>${icon('plus', 14)} Add</button>
+      </div>` : ''}
+    </div>`);
+}
+
+function gpVenues() {
+  const s = state.settings;
+  const q = [s.venue, s.location].filter(Boolean).join(', ');
+  const card = (label, time, ic) => `
+    <div class="card">
+      <h3>${icon(ic, 18)} ${label}</h3>
+      <p style="margin:6px 0"><strong>${esc(s.venue || 'Venue to be decided')}</strong>${s.location ? `<br><span class="muted">${esc(s.location)}</span>` : ''}</p>
+      ${time ? `<p class="small muted" style="margin:0 0 10px">${icon('clock', 13)} ${fmtTime(time)}</p>` : ''}
+      ${q ? `<a class="btn btn-sm" target="_blank" rel="noopener" href="${gpMapsURL(q)}">${icon('pin', 14)} Open in Maps</a>` : ''}
+    </div>`;
+  return gpPageShell('Venues & Locations', 'Where everything happens.', `
+    <div class="grid cols-2">${card('Ceremony', s.ceremonyTime, 'heart')}${card('Reception', s.receptionTime, 'music')}</div>
+    ${!gpShare ? `<div class="actions-row mt-4 no-print"><button class="btn gp-edit-only" data-gp-go="details">${icon('edit', 15)} Edit in Wedding Details</button></div>` : ''}
+    ${!s.venue ? `<p class="muted small mt-2">Tip: set your venue in Wedding Details and maps links will appear here.</p>` : ''}`);
+}
+
+function gpStays() {
+  const stays = state.gameplan.stays;
+  return gpPageShell('Accommodation', 'Where everyone sleeps.', `
+    ${!gpShare ? `<div class="actions-row mb-4 no-print"><button class="btn btn-primary gp-edit-only" data-gp-addstay>${icon('plus', 15)} Add place to stay</button></div>` : ''}
+    ${stays.length ? stays.map(st => {
+      const mq = st.mapsLink || (st.name ? gpMapsURL(st.name) : '');
+      return `<div class="card mb-4">
+        <div class="flex justify-between items-center"><h3 style="margin:0">${esc(st.name)}</h3>
+          ${!gpShare ? `<div class="row-actions no-print" style="display:flex;gap:4px">
+            <button class="icon-btn" style="width:32px;height:32px" data-gp-editstay="${st.id}" title="Edit">${icon('edit', 13)}</button>
+            <button class="icon-btn" style="width:32px;height:32px" data-gp-delstay="${st.id}" title="Delete">${icon('trash', 13)}</button>
+          </div>` : ''}
+        </div>
+        ${(st.checkin || st.checkout) ? `<p class="small muted" style="margin:6px 0">${icon('calendar', 13)} ${st.checkin ? fmtDate(st.checkin) : '—'} → ${st.checkout ? fmtDate(st.checkout) : '—'}</p>` : ''}
+        ${st.notes ? `<p class="small" style="margin:6px 0">${esc(st.notes)}</p>` : ''}
+        ${mq ? `<a class="btn btn-sm mt-2" target="_blank" rel="noopener" href="${st.mapsLink || mq}">${icon('pin', 14)} Open in Maps</a>` : ''}
+      </div>`; }).join('')
+      : emptyState('home', 'No stays added yet', 'Add hotels and room blocks for your guests.')}`);
+}
+
+const GP_PACK_FOR = ['Bride', 'Groom', 'Party', 'Everyone'];
+const GP_PACK_TABS = ['All', 'Bride', 'Groom', 'Party', 'Everyone'];
+function gpSeedPacking() {
+  const g = state.gameplan;
+  if (!g.packing.length && state.emergency.length) {
+    g.packing = state.emergency.map(e => ({ id: uid(), label: e.text, done: !!e.done, for: 'Everyone' }));
+    save();
+  }
+}
+function gpPacking() {
+  gpSeedPacking();
+  const items = state.gameplan.packing;
+  const list = gpPackTab === 'All' ? items : items.filter(p => p.for === gpPackTab);
+  const done = items.filter(p => p.done).length;
+  return gpPageShell('What To Bring', 'The wedding-day packing list.', `
+    <div class="tabs no-print">${GP_PACK_TABS.map(t => `<button class="tab ${gpPackTab === t ? 'active' : ''}" data-gp-packtab="${t}">${t}</button>`).join('')}</div>
+    <div class="card mb-4"><div class="flex justify-between items-center mb-2"><strong>${done} of ${items.length} packed</strong><span>${Math.round(done / Math.max(1, items.length) * 100)}%</span></div>${progressBar(done / Math.max(1, items.length) * 100)}</div>
+    <div class="card">
+      ${list.length ? list.map(p => `
+        <div class="check-item">
+          <input type="checkbox" class="check" data-gp-pack="${p.id}" ${p.done ? 'checked' : ''} ${gpShare ? 'disabled' : ''}>
+          <div class="txt ${p.done ? 'done' : ''}"><div>${esc(p.label)}</div><div class="meta">${esc(p.for)}</div></div>
+          ${!gpShare ? `<div class="row-actions no-print"><button class="icon-btn" style="width:30px;height:30px" data-gp-packdel="${p.id}" title="Delete">${icon('trash', 13)}</button></div>` : ''}
+        </div>`).join('') : `<p class="muted small" style="margin:0">Nothing here yet.</p>`}
+      ${!gpShare ? `<div class="flex gap-2 mt-4 no-print">
+        <input type="text" id="gpPackNew" placeholder="Add an item…" style="flex:1">
+        <select id="gpPackFor" style="width:auto" aria-label="Who is it for">${GP_PACK_FOR.map(f => `<option>${f}</option>`).join('')}</select>
+        <button class="btn btn-sm btn-primary" data-gp-packadd>${icon('plus', 14)} Add</button>
+      </div>` : ''}
+    </div>`);
+}
+
+function gpThanks() {
+  const t = state.gameplan.thanks;
+  return gpPageShell('Thank You', 'From the bottom of our hearts.', `
+    <div class="actions-row mb-4 no-print">${gpEditBtn('thanks', 'Edit message')}</div>
+    <div class="card gp-thanks">
+      <div class="gp-thanks-heart">${icon('heart', 34)}</div>
+      ${t ? `<div class="gp-prose">${gpProse(t)}</div>` : `<p class="muted">No thank-you message yet.</p>`}
+      <div class="gp-couple small">${esc(state.settings.bride || 'Bride')} &amp; ${esc(state.settings.groom || 'Groom')}</div>
+    </div>`);
+}
+
+function gpRules() {
+  const rules = state.gameplan.rules;
+  return gpPageShell('Wedding Day Rules', 'A few gentle requests for the day.', `
+    ${!gpShare ? `<div class="actions-row mb-4 no-print"><button class="btn btn-primary gp-edit-only" data-gp-addrule>${icon('plus', 15)} Add rule</button></div>` : ''}
+    ${rules.length ? `<div class="card"><div class="gp-rules">${rules.map(r => `
+      <div class="gp-rule"><div class="txt" style="flex:1">${esc(r.text)}</div>
+        ${!gpShare ? `<div class="row-actions no-print" style="display:flex;gap:4px">
+          <button class="icon-btn" style="width:30px;height:30px" data-gp-editrule="${r.id}" title="Edit">${icon('edit', 13)}</button>
+          <button class="icon-btn" style="width:30px;height:30px" data-gp-delrule="${r.id}" title="Delete">${icon('trash', 13)}</button>
+        </div>` : ''}
+      </div>`).join('')}</div></div>`
+      : emptyState('alert', 'No rules yet', 'Add a few gentle requests for your guests.')}`);
+}
+
+/* ---------- edit modals ---------- */
+function gpTextModal(title, field, label, placeholder) {
+  const cur = state.gameplan[field];
+  openModal(title, `<div class="field"><label>${label}</label><textarea name="text" rows="8" style="min-height:150px" placeholder="${esc(placeholder || '')}">${esc(cur || '')}</textarea></div>`,
+    {
+      onSubmit: d => {
+        state.gameplan[field] = d.text.trim(); save(); showSection('gameplan'); toast('Saved'); return null;
+      }
+    });
+}
+function gpCoordinatorModal() {
+  const c = state.gameplan.coordinator;
+  openModal('Day-of coordinator', `
+    <div class="form-row">
+      <div class="field"><label>Name <span class="req">*</span></label><input type="text" name="name" value="${esc(c.name || '')}" placeholder="e.g. Jenny Alvarez"></div>
+      <div class="field"><label>Role</label><input type="text" name="role" value="${esc(c.role || '')}" placeholder="Day-Of Coordinator"></div>
+    </div>
+    <div class="field"><label>Phone <span class="req">*</span></label><input type="tel" name="phone" value="${esc(c.phone || '')}" placeholder="(555) 123-4567"><div class="hint">Powers the big tap-to-call button.</div></div>
+    <div class="field"><label>Photo URL (optional)</label><input type="url" name="photo" value="${esc(c.photo || '')}" placeholder="https://"></div>
+    <div class="field"><label>Note for the party</label><textarea name="note" placeholder="e.g. Running late? She's your first call.">${esc(c.note || '')}</textarea></div>`,
+    {
+      onSubmit: d => {
+        if (!d.name.trim()) return "Please enter the coordinator's name.";
+        if (!d.phone.trim()) return 'Please enter a phone number for tap-to-call.';
+        state.gameplan.coordinator = { name: d.name.trim(), role: d.role.trim(), phone: d.phone.trim(), photo: d.photo.trim(), note: d.note.trim() };
+        save(); showSection('gameplan'); toast('Coordinator saved'); return null;
+      }
+    });
+}
+function gpRoleModal(r = {}) {
+  openModal(r.id ? 'Edit responsibility' : 'Add responsibility', `
+    <div class="field"><label>Person <span class="req">*</span></label><input type="text" name="person" value="${esc(r.person || '')}" placeholder="e.g. Maid of Honor — Sophia"></div>
+    <div class="field"><label>Duty <span class="req">*</span></label><textarea name="duty" placeholder="What are they in charge of?">${esc(r.duty || '')}</textarea></div>`,
+    {
+      onSubmit: d => {
+        if (!d.person.trim() || !d.duty.trim()) return 'Please enter both a person and a duty.';
+        if (r.id) Object.assign(r, { person: d.person.trim(), duty: d.duty.trim() });
+        else state.gameplan.roles.push({ id: uid(), person: d.person.trim(), duty: d.duty.trim() });
+        save(); showSection('gameplan'); toast('Saved'); return null;
+      }
+    });
+}
+function gpRuleModal(r = {}) {
+  openModal(r.id ? 'Edit rule' : 'Add rule', `
+    <div class="field"><label>Rule <span class="req">*</span></label><textarea name="text" placeholder="e.g. Unplugged ceremony — no phones during the vows.">${esc(r.text || '')}</textarea></div>`,
+    {
+      onSubmit: d => {
+        if (!d.text.trim()) return 'Please write the rule.';
+        if (r.id) r.text = d.text.trim();
+        else state.gameplan.rules.push({ id: uid(), text: d.text.trim() });
+        save(); showSection('gameplan'); toast('Saved'); return null;
+      }
+    });
+}
+function gpStayModal(st = {}) {
+  openModal(st.id ? 'Edit accommodation' : 'Add accommodation', `
+    <div class="field"><label>Place name <span class="req">*</span></label><input type="text" name="name" value="${esc(st.name || '')}" placeholder="e.g. The Napa Inn"></div>
+    <div class="form-row">
+      <div class="field"><label>Check-in</label><input type="date" name="checkin" value="${esc(st.checkin || '')}"></div>
+      <div class="field"><label>Check-out</label><input type="date" name="checkout" value="${esc(st.checkout || '')}"></div>
+    </div>
+    <div class="field"><label>Notes</label><textarea name="notes" placeholder="Room block code, group rate…">${esc(st.notes || '')}</textarea></div>
+    <div class="field"><label>Maps link (optional)</label><input type="url" name="mapsLink" value="${esc(st.mapsLink || '')}" placeholder="https://"><div class="hint">Leave empty to link a map search for the name.</div></div>`,
+    {
+      onSubmit: d => {
+        if (!d.name.trim()) return 'Please enter the place name.';
+        const obj = { name: d.name.trim(), checkin: d.checkin, checkout: d.checkout, notes: d.notes.trim(), mapsLink: d.mapsLink.trim() };
+        if (st.id) Object.assign(st, obj);
+        else state.gameplan.stays.push(Object.assign({ id: uid() }, obj));
+        save(); showSection('gameplan'); toast('Saved'); return null;
+      }
+    });
+}
+const GP_EDITS = {
+  welcome: () => gpTextModal('Welcome message', 'welcome', 'Welcome message', 'Welcome to our wedding weekend!'),
+  weekend: () => gpTextModal('Weekend overview', 'weekend', 'Weekend overview', 'Friday — rehearsal…\n\nSaturday — the big day!'),
+  familyPhotos: () => gpTextModal('Family photo plan', 'familyPhotos', 'Family photo plan', '1. Couple with parents\n2. …'),
+  thanks: () => gpTextModal('Thank-you message', 'thanks', 'Thank-you message', 'Thank you for being part of our day!'),
+  coordinator: gpCoordinatorModal
+};
+
+/* ---------- router ---------- */
+const GP_PAGES = {
+  home: gpHome, weekend: gpWeekend, timelines: gpTimelines, party: gpParty,
+  hairmakeup: gpHairMakeup, roles: gpRoles, photos: gpPhotos, vendorsched: gpVendorSched,
+  coordinator: gpCoordinator, venues: gpVenues, stays: gpStays, packing: gpPacking,
+  thanks: gpThanks, rules: gpRules
+};
+RENDER.gameplan = function () {
+  const fn = GP_PAGES[gpPage] || gpHome;
+  return fn();
+};
+RENDER.gameplan.after = function () {
+  $$('#view [data-gp]').forEach(b => b.onclick = () => { gpPage = b.dataset.gp; showSection('gameplan'); });
+  $$('#view [data-gp-go]').forEach(b => b.onclick = () => showSection(b.dataset.gpGo));
+  $$('#view [data-gp-share]').forEach(b => b.onclick = () => {
+    gpShare = !gpShare;
+    document.body.classList.toggle('gp-share', gpShare);
+    showSection('gameplan');
+    toast(gpShare ? 'Guest view on — editing hidden' : 'Guest view off');
+  });
+  $$('#view [data-gp-edit]').forEach(b => b.onclick = () => { const f = GP_EDITS[b.dataset.gpEdit]; if (f) f(); });
+  if (gpPage === 'party') {
+    $$('#view [data-gp-ptab]').forEach(b => b.onclick = () => { gpPartyTab = b.dataset.gpPtab; showSection('gameplan'); });
+  }
+  if (gpPage === 'packing') {
+    $$('#view [data-gp-packtab]').forEach(b => b.onclick = () => { gpPackTab = b.dataset.gpPacktab; showSection('gameplan'); });
+    $$('#view [data-gp-pack]').forEach(cb => cb.onchange = () => {
+      const p = state.gameplan.packing.find(x => x.id === cb.dataset.gpPack);
+      if (p) { p.done = cb.checked; save(); showSection('gameplan'); }
+    });
+    $$('#view [data-gp-packdel]').forEach(b => b.onclick = () => {
+      state.gameplan.packing = state.gameplan.packing.filter(x => x.id !== b.dataset.gpPackdel);
+      save(); showSection('gameplan'); toast('Removed');
+    });
+    const addPack = () => {
+      const inp = $('#gpPackNew'); const v = inp.value.trim();
+      if (!v) { toast('Type an item first', 'alert'); return; }
+      state.gameplan.packing.push({ id: uid(), label: v, done: false, for: $('#gpPackFor').value });
+      save(); showSection('gameplan'); toast('Added to packing list');
+    };
+    const pkBtn = $('#view [data-gp-packadd]');
+    if (pkBtn) { pkBtn.onclick = addPack; $('#gpPackNew').addEventListener('keydown', e => { if (e.key === 'Enter') addPack(); }); }
+  }
+  if (gpPage === 'roles') {
+    const ab = $('#view [data-gp-addrole]'); if (ab) ab.onclick = () => gpRoleModal();
+    $$('#view [data-gp-editrole]').forEach(b => b.onclick = () => {
+      const r = state.gameplan.roles.find(x => x.id === b.dataset.gpEditrole);
+      if (r) gpRoleModal(r);
+    });
+    $$('#view [data-gp-delrole]').forEach(b => b.onclick = () => {
+      const r = state.gameplan.roles.find(x => x.id === b.dataset.gpDelrole);
+      confirmAction(`Remove "${r.person}" from responsibilities?`, () => {
+        state.gameplan.roles = state.gameplan.roles.filter(x => x.id !== r.id);
+        save(); showSection('gameplan');
+      });
+    });
+  }
+  if (gpPage === 'rules') {
+    const ab = $('#view [data-gp-addrule]'); if (ab) ab.onclick = () => gpRuleModal();
+    $$('#view [data-gp-editrule]').forEach(b => b.onclick = () => {
+      const r = state.gameplan.rules.find(x => x.id === b.dataset.gpEditrule);
+      if (r) gpRuleModal(r);
+    });
+    $$('#view [data-gp-delrule]').forEach(b => b.onclick = () => {
+      const r = state.gameplan.rules.find(x => x.id === b.dataset.gpDelrule);
+      confirmAction('Delete this rule?', () => {
+        state.gameplan.rules = state.gameplan.rules.filter(x => x.id !== r.id);
+        save(); showSection('gameplan');
+      });
+    });
+  }
+  if (gpPage === 'stays') {
+    const ab = $('#view [data-gp-addstay]'); if (ab) ab.onclick = () => gpStayModal();
+    $$('#view [data-gp-editstay]').forEach(b => b.onclick = () => {
+      const st = state.gameplan.stays.find(x => x.id === b.dataset.gpEditstay);
+      if (st) gpStayModal(st);
+    });
+    $$('#view [data-gp-delstay]').forEach(b => b.onclick = () => {
+      const st = state.gameplan.stays.find(x => x.id === b.dataset.gpDelstay);
+      confirmAction(`Delete "${st.name}"?`, () => {
+        state.gameplan.stays = state.gameplan.stays.filter(x => x.id !== st.id);
+        save(); showSection('gameplan');
+      });
+    });
+  }
+  if (gpPage === 'coordinator') {
+    const addFaq = () => {
+      const inp = $('#gpFaqNew'); const v = inp.value.trim();
+      if (!v) { toast('Type a note first', 'alert'); return; }
+      state.gameplan.faq.push({ id: uid(), text: v });
+      save(); showSection('gameplan'); toast('Note added');
+    };
+    const fqBtn = $('#view [data-gp-addfaq]');
+    if (fqBtn) { fqBtn.onclick = addFaq; $('#gpFaqNew').addEventListener('keydown', e => { if (e.key === 'Enter') addFaq(); }); }
+    $$('#view [data-gp-delfaq]').forEach(b => b.onclick = () => {
+      state.gameplan.faq = state.gameplan.faq.filter(x => x.id !== b.dataset.gpDelfaq);
+      save(); showSection('gameplan'); toast('Removed');
+    });
+  }
+  if (gpPage === 'vendorsched') {
+    $$('#view [data-gp-arr]').forEach(b => b.onclick = () => {
+      const v = state.vendors.find(x => x.id === b.dataset.gpArr);
+      if (!v) return;
+      openModal('Arrival time — ' + v.company, `
+        <div class="field"><label>Wedding-day arrival time</label><input type="time" name="arrivalTime" value="${esc(v.arrivalTime || '')}"></div>`,
+        {
+          onSubmit: d => {
+            v.arrivalTime = d.arrivalTime || ''; save(); showSection('gameplan'); toast('Arrival time saved'); return null;
+          }
+        });
+    });
+  }
+};
+
+/* Migrate older saved data (adds the gameplan store) */
+if (ensureGameplan()) save();
 
 /* ---------------- boot ---------------- */
 wireHeader();
