@@ -481,7 +481,6 @@ function renderNav() {
 /* ---------------- header wiring ---------------- */
 function wireHeader() {
   $('#brandMark').innerHTML = icon('heart', 20);
-  $('#searchIcon').innerHTML = icon('search', 16);
   $('#printBtn').innerHTML = icon('printer', 18);
   $('#printBtn').onclick = () => window.print();
   $('#themeToggle').onclick = toggleTheme;
