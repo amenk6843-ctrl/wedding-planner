@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Ever After — Premium Wedding Planner</title>
+<meta name="description" content="A premium wedding planning application: checklist, budget, guests, seating, vendors, timeline and more.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="app-header">
+  <div class="brand">
+    <span class="brand-mark" id="brandMark"></span>
+    <span class="txt">Ever After<small>Wedding Planner</small></span>
+  </div>
+  <div class="header-spacer"></div>
+  <div class="search-wrap">
+    <span id="searchIcon"></span>
+    <input type="text" id="globalSearch" placeholder="Search guests, vendors, tasks…" autocomplete="off" aria-label="Global search">
+    <div class="search-results" id="searchResults" hidden></div>
+  </div>
+  <button class="icon-btn" id="printBtn" title="Print this page" aria-label="Print"></button>
+  <button class="icon-btn" id="themeToggle" title="Toggle light / dark mode" aria-label="Toggle theme"></button>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" id="sidebar" aria-label="Primary navigation"></aside>
+  <main class="main" id="view" tabindex="-1"></main>
+</div>
+
+<nav class="mobile-nav" aria-label="Mobile navigation"><div class="mn-row" id="mobileNav"></div></nav>
+<div class="more-sheet" id="moreSheet"><div class="sheet" id="moreSheetBody" role="dialog" aria-label="All sections"></div></div>
+
+<div id="modalRoot"></div>
+<div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
